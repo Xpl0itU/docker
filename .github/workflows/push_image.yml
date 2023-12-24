@@ -48,12 +48,12 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.CI_PAT_WRITE_PACKAGE }}
+          password: ${{ secrets.GH_PACKAGE_TOKEN }}
 
       - name: Get date for tag
         run: echo "DATE_TAG=$(date +"%Y%m%d")" >> $GITHUB_ENV
 
-      - name: Build and push ${{ matrix.dockerfile }} Docker image
+      - name: Build and push ${{ matrix.image }} Docker image
         uses: docker/build-push-action@v4
         with:
           context: .

@@ -6,7 +6,7 @@ RUN sudo pacman -Syyu --noconfirm && \
     sudo pacman -S --needed --noconfirm switch-dev && \
     sudo pacman -S --needed --noconfirm switch-portlibs && \
     sudo pacman -S --needed --noconfirm devkitARM && \
-    yes | sudo pacman -Scc
+    yes | pacman -Scc
 
 ENV DEVKITARM=/opt/devkitpro/devkitARM
 

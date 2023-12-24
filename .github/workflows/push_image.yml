@@ -1,4 +1,4 @@
-name: Publish Docker Image
+name: Publish Docker Images
 on:
   push:
     branches:
@@ -9,35 +9,35 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-lib:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-    - name: build binary
-      run: |
-        ./build_docker base
-        ./build_docker dka64
-        ./build_docker dkarm
-        ./build_docker dkppc
   build-and-push-image:
     runs-on: ubuntu-latest
-    needs: build-lib
+    strategy:
+        fail-fast: false
+        matrix:
+          include:
+            - dockerfile: ./toolchain-base/Dockerfile
+              image: ghcr.io/xpl0itu/toolchain-base
+            - dockerfile: ./devkita64/Dockerfile
+              image: ghcr.io/xpl0itu/devkita64
+            - dockerfile: ./devkitarm/Dockerfile
+              image: ghcr.io/xpl0itu/devkitarm
+            - dockerfile: ./devkitppc/Dockerfile
+              image: ghcr.io/xpl0itu/devkitppc
     permissions:
       contents: read
       packages: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ matrix.image }}
           tags: |
             type=raw,value={{date 'YYYYMMDD'}}-{{sha}}
             type=raw,value={{date 'YYYYMMDD'}}
@@ -50,10 +50,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.CI_PAT_WRITE_PACKAGE }}
 
-      - name: Build and push Docker image
+      - name: Get date for tag
+        run: echo "DATE_TAG=$(date +"%Y%m%d")" >> $GITHUB_ENV
+
+      - name: Build and push ${{ matrix.dockerfile }} Docker image
         uses: docker/build-push-action@v4
         with:
           context: .
-          tags: ${{ steps.meta.outputs.tags }}
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            "${{ matrix.image }}:${{ env.DATE_TAG }}"
+            "${{ matrix.image }}:latest"
           labels: ${{ steps.meta.outputs.labels }}
           push: true

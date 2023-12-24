@@ -1,12 +1,12 @@
-FROM devkitpro/toolchain-base
+FROM ghcr.io/Xpl0itU/toolchain-base
 
-MAINTAINER Dave Murphy <davem@devkitpro.org>
+LABEL Author="Xpl0itU <DaThinkingChair@protonmail.com>"
 
-RUN dkp-pacman -Syyu --noconfirm && \
-    dkp-pacman -S --needed --noconfirm switch-dev && \
-    dkp-pacman -S --needed --noconfirm switch-portlibs && \
-    dkp-pacman -S --needed --noconfirm devkitARM && \
-    yes | dkp-pacman -Scc
+RUN pacman -Syyu --noconfirm && \
+    pacman -S --needed --noconfirm switch-dev && \
+    pacman -S --needed --noconfirm switch-portlibs && \
+    pacman -S --needed --noconfirm devkitARM && \
+    yes | pacman -Scc
 
 ENV DEVKITARM=/opt/devkitpro/devkitARM
 
